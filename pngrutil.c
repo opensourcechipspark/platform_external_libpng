@@ -50,6 +50,12 @@ __inline double png_strtod(png_structp png_ptr, PNG_CONST char *nptr,
 #  endif
 #endif
 
+
+#ifdef HAVE_ARM_NEON
+extern void png_read_filter_row_neon(png_uint_32 rowbytes, png_byte pixel_depth, png_bytep row, png_bytep prev_row, int filter);
+#endif
+
+
 png_uint_32 PNGAPI
 png_get_uint_31(png_structp png_ptr, png_bytep buf)
 {
@@ -2957,6 +2963,11 @@ void /* PRIVATE */
 png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep row,
    png_bytep prev_row, int filter)
 {
+   
+#ifdef HAVE_ARM_NEON
+//#error "fuck png neon"
+   png_read_filter_row_neon(row_info->rowbytes, row_info->pixel_depth, row, prev_row, filter);
+#else
    png_debug(1, "in png_read_filter_row");
    png_debug2(2, "row = %lu, filter = %d", png_ptr->row_number, filter);
    switch (filter)
@@ -3074,6 +3085,7 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep row,
          *row = 0;
          break;
    }
+#endif
 }
 
 #ifdef PNG_INDEX_SUPPORTED
